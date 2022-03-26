@@ -14,7 +14,7 @@ RUN apk add --no-cache --update python3 python3-dev gcc gfortran musl-dev libffi
 RUN pip install -U pip
 
 RUN pip install -r requirements.txt
-
+#i added this line because when run locally, protobuf neede to be upgraded
 RUN pip install --upgrade protobuf
 
 CMD [ "streamlit","run", "home/app/heart_disease_app.py"]
