@@ -3,17 +3,26 @@ stages:
     - test
     - deploy
 
-build_project:
+.build_project:
     image: python:3.8.10-slim
     stage: build
     script: 
         - pip install -r requirements.txt
         #- apk add curl 
-        #- streamlit run heart_disease_app.py 
-        
+        #- streamlit run heart_disease_app.py       
+test:
+    image: python:3.8.10-slim
+    stage: .pre
+    script:
+        - pip install pycurl
+        - pip install -r requirements.txt
+        - streamlit run heart_disease_app.py &
+        - sleep 10
+        - curl http://localhost:8501 | grep "Heart Disease Diagonistic App"
         
 
-deploy app:
+
+.deploy app:
     stage: deploy 
     image: ruby:latest
     rules:
