@@ -1,0 +1,14 @@
+stages: 
+    - build 
+    - test
+
+build project:
+    image: python:3.8.10-alpine3.13
+    stage: build 
+    script:
+        - pip install -r requirements.txt
+        - streamlit run heart_disease_app.py &
+        - sleep 10 
+        - curl http://localhost:8501 | grep "Heart Disease Diagonistic App"
+
+ 
