@@ -1,21 +1,47 @@
 stages: 
     - build
     - test
+    - staging
     - deploy
 
+variables:
+    url : http://localhost.8501
+
 build_project:
+    #image: python:3.8.10-slim
     image: python:3.8.10-slim
     stage: build
     script: 
         - pip install -r requirements.txt
-        #- apk add curl 
-        #- streamlit run heart_disease_app.py 
+        - streamlit run heart_disease_app.py &
         
         
+.test:
+    image: python:3.8.10-slim
+    stage: test
+    script:
+        - pip install -r requirements.txt
+        - streamlit run heart_disease_app.py &
+        - sleep 10
+        - python3
+        - from urllib import request
+        - resp = request.urlopen("http://localhost:8501")
+        - resp.status
+        - exit()
+
+deploy staging:
+    stage: staging
+    image: deploy
+    rules:
+        - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    script:
+        - gem install dpl
+        - dpl --provider=heroku --api_key=$HEROKU_API_KEY --app=$HEROKU_STAGING_APP_NAME
 
 deploy app:
     stage: deploy 
     image: ruby:latest
+    when: manual
     rules:
         - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     script:
