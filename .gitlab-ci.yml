@@ -31,7 +31,7 @@ build_project:
 
 deploy staging:
     stage: staging
-    image: deploy
+    image: ruby:latest
     rules:
         - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     script:
