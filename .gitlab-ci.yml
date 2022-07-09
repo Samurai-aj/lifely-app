@@ -1,13 +1,21 @@
 stages: 
     - build
     - test
+    - package
     - staging
+    - staging-test
     - deploy
+    - prod-test
 
 variables:
     url : http://localhost:8501
+    APP_VERSION: $CI_PIPELINE_IID
+    TEST_STAGING_URL: https://lifely-app-staging.herokuapp.com
+    PROD_STAGING_URL: https://lifely-app.herokuapp.com
+    
 
-build_project:
+
+.build_project:
     #image: python:3.8.10-slim
     image: python:3.8.10-slim
     stage: build
@@ -30,8 +38,22 @@ build_project:
         - resp = request.urlopen("http://localhost:8501")
         - resp.status
         - exit()
+#build docker image and push image to dockerhub
+build docker image:
+    stage: package
+    image: docker:20.10.12
+    services:
+        -  docker:20.10.12-dind
+    before_script: 
+        - echo $DOCKERHUB_ACCESSTOKEN | docker login -u $DOCKERHUB_USER --password-stdin
+    script:
+        #- echo $DOCKERHUB_ACCESSTOKEN | docker login -u $DOCKERHUB_USER    $DOCKERHUB_ACCESSTOKEN --password-stdin
+        - docker build -t ocheotobo/lifely:$APP_VERSION .
+        - docker push ocheotobo/lifely:$APP_VERSION
 
-deploy staging:
+
+#deploy to app using ruby dpl toolkit to staging server
+.deploy staging:
     stage: staging
     image: ruby:latest
     rules:
@@ -41,8 +63,17 @@ deploy staging:
         - gem install dpl
         - dpl --provider=heroku --api_key=$HEROKU_API_KEY --app=$HEROKU_STAGING_APP_NAME
 
-deploy app:
-    
+#test the image using curl running on the dev server
+.staging-test:
+    stage: staging-test
+    image:  curlimages/
+    rules:
+        - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    script:
+        - curl $TEST_STAGING_URL | grep "Heart Disease Diagonistic App"
+
+#deploy app using ruby dpl toolkitt o production
+.deploy app:
     stage: deploy 
     image: ruby:latest
     when: manual
@@ -52,6 +83,16 @@ deploy app:
     script:
         - gem install dpl 
         - dpl --provider=heroku --api_key=$HEROKU_API_KEY --app=$HEROKU_APP_NAME
+
+#perform test on prod server using curl
+.prod test:
+    stage: prod-test
+    image: curlimages/curl
+    rules:
+        - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    script: 
+        - curl $PROD_STAGING_URL | grep "Heart Disease Diagonistic App"
+
 
     
         
