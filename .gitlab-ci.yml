@@ -55,7 +55,7 @@ deploy staging:
 #test the image using curl running on the dev server
 staging-test:
     stage: staging-test
-    image:  curlimages/
+    image:  curlimages/curl
     rules:
         - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     script:
