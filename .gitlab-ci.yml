@@ -28,9 +28,11 @@ build_project:
         
         
 # additionally build docker image and push image to dockerhub
-.build docker image:
+build docker image:
     stage: package
     image: docker:20.10.12
+    rules:
+        - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     services:
         -  docker:20.10.12-dind
     before_script: 
@@ -78,6 +80,7 @@ deploy to prod:
 prod test:
     stage: prod-test
     image: curlimages/curl
+    when: manual
     rules:
         - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     script: 
