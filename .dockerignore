@@ -1,0 +1,13 @@
+#ignore terraform files
+terraform/
+
+#ignore gitlab ci file
+.gitlab-ci.yml
+
+#ignore git and cache folders
+.git
+.cache
+.gitignore
+
+
+
